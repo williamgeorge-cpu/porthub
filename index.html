@@ -94,6 +94,40 @@ function importPorthubSave(input) {
 </script>
 <!-- END AUTOMATED PORTHUB DATA MOVER -->
 
+        <script>
+// 1. Detect when the user hits the Chromebook Fullscreen row key
+document.addEventListener('keydown', function(event) {
+    // Chromebook fullscreen keys typically trigger the standard F11 or Search+F4 signal
+    if (event.key === 'F11' || event.code === 'F11') {
+        // If the webpage isn't true borderless yet, force it instantly
+        if (!document.fullscreenElement) {
+            triggerTrueBorderless();
+        }
+    }
+});
+
+// 2. Backup Scanner: Detects if the browser dimensions scale to maximum screen size
+window.addEventListener('resize', function() {
+    // If the browser width matches the physical screen width, the user went full screen
+    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
+        if (!document.fullscreenElement) {
+            triggerTrueBorderless();
+        }
+    }
+});
+
+// The core engine injector that clears the PWA title bar
+function triggerTrueBorderless() {
+    var elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => console.log(err));
+    } else if (elem.webkitRequestFullscreen) { /* ChromeOS internal fallback */
+        elem.webkitRequestFullscreen();
+    }
+}
+</script>
+
+
     </body>
 
 
