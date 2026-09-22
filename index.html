@@ -22,6 +22,77 @@
 
    
 
+<!-- AUTOMATED PORTHUB DATA MOVER -->
+<div style="background:#16161a; color:#fff; font-family:sans-serif; padding:20px; border:2px solid #b02a2a; border-radius:10px; max-width:400px; margin:20px auto; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+    <h3 style="color:#b02a2a; margin:0 0 10px 0; font-size:1.3em;">📦 Porthub Save Porter</h3>
+    <p style="font-size:0.85em; color:#a0a0a5; margin-bottom:15px;">Transfer your progress smoothly without using Developer Tools.</p>
+    
+    <!-- EXPORT SECTION -->
+    <button style="background:#b02a2a; color:#fff; border:none; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%; margin-bottom:15px;" onclick="exportPorthubSave()">1. Download My Save File</button>
+    
+    <div style="border-top:1px solid #333; margin:10px 0; padding-top:15px;">
+        <!-- IMPORT SECTION -->
+        <input type="file" id="porthubImportFile" accept=".pHubSave" style="display:none;" onchange="importPorthubSave(this)">
+        <button style="background:#2f2f37; color:#fff; border:1px solid #444; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%;" onclick="document.getElementById('porthubImportFile').click()">2. Upload & Inject Save File</button>
+    </div>
+</div>
+
+<script>
+function exportPorthubSave() {
+    var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
+    var found = false;
+    databases.forEach(function(dbName) {
+        var request = indexedDB.open(dbName);
+        request.onsuccess = function(e) {
+            var db = e.target.result;
+            if (!db.objectStoreNames.contains('FILE_DATA')) return;
+            db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
+                var cursor = evt.target.result;
+                if (cursor) {
+                    if (cursor.key.includes('user') || cursor.key.includes('.dat')) {
+                        found = true;
+                        var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
+                        var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
+                        var link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = "hollow_knight_progress.pHubSave";
+                        link.click();
+                        alert("🎉 Success! Your save file has been downloaded to your Chromebook's Downloads folder.");
+                    }
+                    cursor.continue();
+                }
+            };
+        };
+    });
+    setTimeout(function() { if(!found) alert("No save data found yet. Try entering the game, saving at a bench, and trying again!"); }, 1000);
+}
+
+function importPorthubSave(input) {
+    if (!input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var bytes = new Uint8Array(e.target.result);
+        var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
+        var successCount = 0;
+        databases.forEach(function(dbName) {
+            var request = indexedDB.open(dbName);
+            request.onsuccess = function(evt) {
+                var db = evt.target.result;
+                if (!db.objectStoreNames.contains('FILE_DATA')) return;
+                var tx = db.transaction('FILE_DATA', 'readwrite');
+                tx.objectStore('FILE_DATA').put({ contents: bytes, timestamp: Date.now() }, '/user1.dat');
+                tx.objectStore('FILE_DATA').put({ contents: bytes, timestamp: Date.now() }, 'user1.dat');
+                successCount++;
+                if(successCount === 1) {
+                    alert("🎮 Save Injected Successfully! Close the app and reopen it to load your progress.");
+                }
+            };
+        });
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+}
+</script>
+<!-- END AUTOMATED PORTHUB DATA MOVER -->
 
     </body>
 
