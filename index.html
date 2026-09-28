@@ -153,57 +153,68 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-<!-- PORTHUB XBOX INPUT INJECTION BRIDGE -->
+<!-- PORTHUB DIRECT CANVAS KEYBOARD BRIDGE -->
 <script>
     (function() {
-        // 1. Assign stick movements to default arrow key values
-        const ENGINE_KEYS = {
-            up: 'ArrowUp',
-            down: 'ArrowDown',
-            left: 'ArrowLeft',
-            right: 'ArrowRight'
+        // Map stick directions to classic Quake engine movement/look keys
+        // (Arrow keys work perfectly for looking if +mlook is active)
+        const LOOK_KEYS = {
+            up: { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38 },
+            down: { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 },
+            left: { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37 },
+            right: { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 }
         };
 
         let activeKeys = {};
 
-        function sendHardwareKey(code, isPressed) {
-            // Stop repeated spam if the key state hasn't changed
+        function sendCanvasKey(keyConfig, isPressed) {
+            const code = keyConfig.code;
             if (activeKeys[code] === isPressed) return;
             activeKeys[code] = isPressed;
 
-            const type = isPressed ? 'keydown' : 'keyup';
-            window.dispatchEvent(new KeyboardEvent(type, {
-                code: code,
-                key: code,
+            const targetCanvas = document.getElementById('canvas');
+            if (!targetCanvas) return;
+
+            const eventType = isPressed ? 'keydown' : 'keyup';
+            
+            // Generate a heavy, fully-detailed event that Emscripten cannot ignore
+            const keyEvent = new KeyboardEvent(eventType, {
+                key: keyConfig.key,
+                code: keyConfig.code,
+                keyCode: keyConfig.keyCode,
+                which: keyConfig.keyCode,
                 bubbles: true,
                 cancelable: true
-            }));
+            });
+
+            // Force injection straight to the canvas boundary layer
+            targetCanvas.dispatchEvent(keyEvent);
         }
 
-        function pollXboxHardwareBridge() {
+        function pollXboxCanvasBridge() {
             const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            const pad = gamepads[0]; // Listen directly to your primary Xbox controller slot
+            const pad = gamepads[0]; // Xbox controller slot
 
             if (pad) {
-                // XInput Standard: Axis 2 is Right Stick Horizontal, Axis 3 is Right Stick Vertical
-                const axisX = pad.axes[2]; 
-                const axisY = pad.axes[3]; 
-                const deadzone = 0.25; // Block stick drift
+                const rightStickX = pad.axes[2]; // Right Stick Horizontal
+                const rightStickY = pad.axes[3]; // Right Stick Vertical
+                const deadzone = 0.25;
 
-                // Horizontal Panning (Turn Left / Right)
-                sendHardwareKey(ENGINE_KEYS.right, axisX > deadzone);
-                sendHardwareKey(ENGINE_KEYS.left, axisX < -deadzone);
+                // Fire right/left looking straight to the game screen canvas
+                sendCanvasKey(LOOK_KEYS.right, rightStickX > deadzone);
+                sendCanvasKey(LOOK_KEYS.left, rightStickX < -deadzone);
 
-                // Vertical Pitching (Look Up / Down)
-                sendHardwareKey(ENGINE_KEYS.down, axisY > deadzone);
-                sendHardwareKey(ENGINE_KEYS.up, axisY < -deadzone);
+                // Fire up/down looking straight to the game screen canvas
+                sendCanvasKey(LOOK_KEYS.down, rightStickY > deadzone);
+                sendCanvasKey(LOOK_KEYS.up, rightStickY < -deadzone);
             }
-            requestAnimationFrame(pollXboxHardwareBridge);
+            requestAnimationFrame(pollXboxCanvasBridge);
         }
 
-        requestAnimationFrame(pollXboxHardwareBridge);
+        requestAnimationFrame(pollXboxCanvasBridge);
     })();
 </script>
+
 
 
 
