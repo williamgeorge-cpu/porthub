@@ -153,10 +153,9 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-<!-- Keyboard-level input bridge for the Xbox Controller -->
+<!-- Put this right before </body> at the bottom of index.html -->
 <script>
     (function() {
-        // Map stick directions to standard keyboard code characters
         const LOOK_KEYS = {
             up: 'ArrowUp',
             down: 'ArrowDown',
@@ -167,7 +166,6 @@ if (navigator.storage && navigator.storage.persist) {
         let activeKeys = {};
 
         function triggerKey(code, isPressed) {
-            // Only fire if the state is actually toggling to prevent input flood
             if (activeKeys[code] === isPressed) return;
             activeKeys[code] = isPressed;
 
@@ -178,26 +176,21 @@ if (navigator.storage && navigator.storage.persist) {
                 bubbles: true,
                 cancelable: true
             });
-            
-            // Dispatch directly to the window so the WASM handler picks it up natively
             window.dispatchEvent(event);
         }
 
         function pollXboxKeyboardBridge() {
             const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            const pad = gamepads[0]; // Primary Xbox slot
+            const pad = gamepads[0]; // Active primary Xbox controller index
 
             if (pad) {
-                // XInput Standard: Axis 2 = Right Stick X, Axis 3 = Right Stick Y
-                const stickX = pad.axes[2];
-                const stickY = pad.axes[3];
-                const deadzone = 0.25; // Strict filter to block stick drift
+                const stickX = pad.axes[2]; // Right Stick X-axis
+                const stickY = pad.axes[3]; // Right Stick Y-axis
+                const deadzone = 0.25;      // Filter out stick drift
 
-                // Horizontal Panning Look (Right Stick X)
+                // Map stick directions directly to arrow keystrokes
                 triggerKey(LOOK_KEYS.right, stickX > deadzone);
                 triggerKey(LOOK_KEYS.left, stickX < -deadzone);
-
-                // Vertical Pitch Look (Right Stick Y)
                 triggerKey(LOOK_KEYS.down, stickY > deadzone);
                 triggerKey(LOOK_KEYS.up, stickY < -deadzone);
             }
