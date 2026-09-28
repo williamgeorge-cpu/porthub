@@ -153,44 +153,58 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-<!-- PORTHUB XBOX CONTROLLER WAKEUP ELEMENT -->
+<!-- PORTHUB XBOX INPUT INJECTION BRIDGE -->
 <script>
     (function() {
-        // 1. Set a global watch trigger for when a gamepad hooks in
-        window.addEventListener("gamepadconnected", function(e) {
-            console.log("Xbox Controller connected slot: " + e.gamepad.index);
-        });
+        // 1. Assign stick movements to default arrow key values
+        const ENGINE_KEYS = {
+            up: 'ArrowUp',
+            down: 'ArrowDown',
+            left: 'ArrowLeft',
+            right: 'ArrowRight'
+        };
 
-        // 2. Continuous lightweight background monitor loop
-        function forceGamepadWakeup() {
-            var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            
-            // Look for your active Xbox controller in the primary index slot
-            if (gamepads && gamepads[0]) {
-                var pad = gamepads[0];
+        let activeKeys = {};
 
-                // 3. Check if any core buttons are held down to kick the browser awake
-                var buttonPressed = pad.buttons.some(b => b.pressed);
-                
-                // 4. Check if sticks are actively pushed away from deadzone center
-                var sticksMoved = pad.axes.some(axis => Math.abs(axis) > 0.2);
+        function sendHardwareKey(code, isPressed) {
+            // Stop repeated spam if the key state hasn't changed
+            if (activeKeys[code] === isPressed) return;
+            activeKeys[code] = isPressed;
 
-                if (buttonPressed || sticksMoved) {
-                    // Programmatically trigger a synthetic click gesture on the canvas
-                    var canvas = document.getElementById('canvas');
-                    if (canvas) {
-                        canvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-                        canvas.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-                    }
-                }
-            }
-            requestAnimationFrame(forceGamepadWakeup);
+            const type = isPressed ? 'keydown' : 'keyup';
+            window.dispatchEvent(new KeyboardEvent(type, {
+                code: code,
+                key: code,
+                bubbles: true,
+                cancelable: true
+            }));
         }
 
-        // Ignite the tracking thread immediately on page load
-        requestAnimationFrame(forceGamepadWakeup);
+        function pollXboxHardwareBridge() {
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            const pad = gamepads[0]; // Listen directly to your primary Xbox controller slot
+
+            if (pad) {
+                // XInput Standard: Axis 2 is Right Stick Horizontal, Axis 3 is Right Stick Vertical
+                const axisX = pad.axes[2]; 
+                const axisY = pad.axes[3]; 
+                const deadzone = 0.25; // Block stick drift
+
+                // Horizontal Panning (Turn Left / Right)
+                sendHardwareKey(ENGINE_KEYS.right, axisX > deadzone);
+                sendHardwareKey(ENGINE_KEYS.left, axisX < -deadzone);
+
+                // Vertical Pitching (Look Up / Down)
+                sendHardwareKey(ENGINE_KEYS.down, axisY > deadzone);
+                sendHardwareKey(ENGINE_KEYS.up, axisY < -deadzone);
+            }
+            requestAnimationFrame(pollXboxHardwareBridge);
+        }
+
+        requestAnimationFrame(pollXboxHardwareBridge);
     })();
 </script>
+
 
 
 
