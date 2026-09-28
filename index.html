@@ -153,39 +153,35 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-        <script>
-            function pollXboxInput() {
-    // 1. Fetch all connected gamepads
-    var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    // 2. Target the primary controller index slot
-    var pad = gamepads[0]; 
+       <!-- Single script tag to bridge your Xbox controller to the global mouse layer -->
+<script>
+    function pollXboxToMouse() {
+        var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+        var pad = gamepads[0]; // Active primary Xbox controller index
 
-    if (pad) {
-        // Assign Right Stick axes (Axis 2 = Horizontal, Axis 3 = Vertical)
-        var rightStickX = pad.axes[2];   
-        var rightStickY = pad.axes[3]; 
+        if (pad) {
+            // XInput Standard: Axis 2 is Right Stick X, Axis 3 is Right Stick Y
+            var rightStickX = pad.axes[2]; 
+            var rightStickY = pad.axes[3]; 
 
-        // 3. Define a 15% deadzone filter to stop camera drift
-        if (Math.abs(rightStickX) > 0.15 || Math.abs(rightStickY) > 0.15) {
-            var canvas = document.getElementById('canvas');
-            
-            // 4. Send a synthetic mouse movement directly to the canvas
-            canvas.dispatchEvent(new MouseEvent('mousemove', {
-                bubbles: true,
-                cancelable: true,
-                movementX: rightStickX * 12,  // Change horizontal speed here
-                movementY: rightStickY * 12   // Change vertical speed here
-            }));
+            // 15% Deadzone to stop camera drift
+            if (Math.abs(rightStickX) > 0.15 || Math.abs(rightStickY) > 0.15) {
+                
+                // Dispatch directly to the document window instead of the canvas element
+                window.dispatchEvent(new MouseEvent('mousemove', {
+                    bubbles: true,
+                    cancelable: true,
+                    movementX: rightStickX * 15, // Adjust your horizontal turn speed here
+                    movementY: rightStickY * 15  // Adjust your vertical look speed here
+                }));
+            }
         }
+        requestAnimationFrame(pollXboxToMouse);
     }
-    // 5. Keep the animation loop ticking smoothly
-    requestAnimationFrame(pollXboxInput);
-}
+    // Launch the global input tracking loop immediately
+    requestAnimationFrame(pollXboxToMouse);
+</script>
 
-// Fire the loop right at launch
-requestAnimationFrame(pollXboxInput);
-
-        </script>
     </body>
 
 
