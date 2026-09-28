@@ -38,7 +38,17 @@
 </div>
 
 <script>
-function exportPorthubSave() {
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().then((granted) => {
+    if (granted) {
+      console.log("Storage persistence GUARANTEED. ChromeOS will not evict saves.");
+    } else {
+      console.log("Storage persistence DENIED. Save data remains vulnerable.");
+    }
+  });
+}
+
+    function exportPorthubSave() {
     var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
     var found = false;
     databases.forEach(function(dbName) {
