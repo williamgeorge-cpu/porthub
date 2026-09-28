@@ -36,18 +36,7 @@
         <button style="background:#2f2f37; color:#fff; border:1px solid #444; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%;" onclick="document.getElementById('porthubImportFile').click()">2. Upload & Inject Save File</button>
     </div>
 </div>
-
 <script>
-if (navigator.storage && navigator.storage.persist) {
-  navigator.storage.persist().then((granted) => {
-    if (granted) {
-      console.log("Storage persistence GUARANTEED. ChromeOS will not evict saves.");
-    } else {
-      console.log("Storage persistence DENIED. Save data remains vulnerable.");
-    }
-  });
-}
-
     function exportPorthubSave() {
     var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
     var found = false;
@@ -134,7 +123,33 @@ function triggerTrueBorderless() {
 <div id="storage-status" style="padding: 5px; font-weight: bold; color: orange;">
   Checking Save Protection State...
 </div>
+<script>
 
+
+    // Verification patch for your main dashboard script
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persisted().then((isPersisted) => {
+    const statusDiv = document.getElementById("storage-status");
+    
+    if (isPersisted) {
+      statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+      statusDiv.style.color = "#00ff00"; // Green color
+    } else {
+      // If it's not active yet, request it natively
+      navigator.storage.persist().then((granted) => {
+        if (granted) {
+          statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+          statusDiv.style.color = "#00ff00";
+        } else {
+          statusDiv.innerText = "⚠️ Saves Vulnerable (Managed Profile Restriction)";
+          statusDiv.style.color = "#ff3333"; // Red color
+        }
+      });
+    }
+  });
+}
+
+</script>
 
 
     </body>
