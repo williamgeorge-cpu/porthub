@@ -153,53 +153,45 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-<!-- Put this right before </body> at the bottom of index.html -->
+<!-- PORTHUB XBOX CONTROLLER WAKEUP ELEMENT -->
 <script>
     (function() {
-        const LOOK_KEYS = {
-            up: 'ArrowUp',
-            down: 'ArrowDown',
-            left: 'ArrowLeft',
-            right: 'ArrowRight'
-        };
+        // 1. Set a global watch trigger for when a gamepad hooks in
+        window.addEventListener("gamepadconnected", function(e) {
+            console.log("Xbox Controller connected slot: " + e.gamepad.index);
+        });
 
-        let activeKeys = {};
+        // 2. Continuous lightweight background monitor loop
+        function forceGamepadWakeup() {
+            var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            
+            // Look for your active Xbox controller in the primary index slot
+            if (gamepads && gamepads[0]) {
+                var pad = gamepads[0];
 
-        function triggerKey(code, isPressed) {
-            if (activeKeys[code] === isPressed) return;
-            activeKeys[code] = isPressed;
+                // 3. Check if any core buttons are held down to kick the browser awake
+                var buttonPressed = pad.buttons.some(b => b.pressed);
+                
+                // 4. Check if sticks are actively pushed away from deadzone center
+                var sticksMoved = pad.axes.some(axis => Math.abs(axis) > 0.2);
 
-            const eventType = isPressed ? 'keydown' : 'keyup';
-            const event = new KeyboardEvent(eventType, {
-                code: code,
-                key: code,
-                bubbles: true,
-                cancelable: true
-            });
-            window.dispatchEvent(event);
-        }
-
-        function pollXboxKeyboardBridge() {
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            const pad = gamepads[0]; // Active primary Xbox controller index
-
-            if (pad) {
-                const stickX = pad.axes[2]; // Right Stick X-axis
-                const stickY = pad.axes[3]; // Right Stick Y-axis
-                const deadzone = 0.25;      // Filter out stick drift
-
-                // Map stick directions directly to arrow keystrokes
-                triggerKey(LOOK_KEYS.right, stickX > deadzone);
-                triggerKey(LOOK_KEYS.left, stickX < -deadzone);
-                triggerKey(LOOK_KEYS.down, stickY > deadzone);
-                triggerKey(LOOK_KEYS.up, stickY < -deadzone);
+                if (buttonPressed || sticksMoved) {
+                    // Programmatically trigger a synthetic click gesture on the canvas
+                    var canvas = document.getElementById('canvas');
+                    if (canvas) {
+                        canvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                        canvas.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                    }
+                }
             }
-            requestAnimationFrame(pollXboxKeyboardBridge);
+            requestAnimationFrame(forceGamepadWakeup);
         }
 
-        requestAnimationFrame(pollXboxKeyboardBridge);
+        // Ignite the tracking thread immediately on page load
+        requestAnimationFrame(forceGamepadWakeup);
     })();
 </script>
+
 
 
     </body>
