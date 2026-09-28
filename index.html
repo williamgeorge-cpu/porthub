@@ -153,67 +153,67 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-<!-- PORTHUB DIRECT CANVAS KEYBOARD BRIDGE -->
+<!-- PORTHUB DESKTOP CANVAS HARDWARE KEY INJECTOR -->
 <script>
     (function() {
-        // Map stick directions to classic Quake engine movement/look keys
-        // (Arrow keys work perfectly for looking if +mlook is active)
-        const LOOK_KEYS = {
-            up: { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38 },
-            down: { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 },
-            left: { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37 },
-            right: { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 }
+        // Map stick directions directly to standard Quake keyboard key commands
+        // A/D handles turning; for vertical looking, we simulate standard keys
+        const CONTROLLER_KEYS = {
+            up: { key: 'PageUp', code: 'PageUp', keyCode: 33 },
+            down: { key: 'PageDown', code: 'PageDown', keyCode: 34 },
+            left: { key: 'a', code: 'KeyA', keyCode: 65 },
+            right: { key: 'd', code: 'KeyD', keyCode: 68 }
         };
 
         let activeKeys = {};
 
-        function sendCanvasKey(keyConfig, isPressed) {
-            const code = keyConfig.code;
+        function dispatchHardwareKey(config, isPressed) {
+            const code = config.code;
             if (activeKeys[code] === isPressed) return;
             activeKeys[code] = isPressed;
 
-            const targetCanvas = document.getElementById('canvas');
-            if (!targetCanvas) return;
-
+            const targetElement = document.getElementById('canvas') || window;
             const eventType = isPressed ? 'keydown' : 'keyup';
             
-            // Generate a heavy, fully-detailed event that Emscripten cannot ignore
-            const keyEvent = new KeyboardEvent(eventType, {
-                key: keyConfig.key,
-                code: keyConfig.code,
-                keyCode: keyConfig.keyCode,
-                which: keyConfig.keyCode,
+            // Build a heavy, structured event that passes directly into Emscripten's native event catcher
+            const ev = new KeyboardEvent(eventType, {
+                key: config.key,
+                code: config.code,
+                keyCode: config.keyCode,
+                which: config.keyCode,
                 bubbles: true,
-                cancelable: true
+                cancelable: true,
+                view: window
             });
 
-            // Force injection straight to the canvas boundary layer
-            targetCanvas.dispatchEvent(keyEvent);
+            targetElement.dispatchEvent(ev);
         }
 
-        function pollXboxCanvasBridge() {
+        function pollXboxHardwareBridge() {
             const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            const pad = gamepads[0]; // Xbox controller slot
+            const pad = gamepads[0]; // Primary connected Xbox controller
 
             if (pad) {
-                const rightStickX = pad.axes[2]; // Right Stick Horizontal
-                const rightStickY = pad.axes[3]; // Right Stick Vertical
-                const deadzone = 0.25;
+                // XInput Standard: Axis 2 = Right Stick Horizontal, Axis 3 = Right Stick Vertical
+                const stickX = pad.axes[2];
+                const stickY = pad.axes[3];
+                const deadzone = 0.25; // Block stick drift calibration
 
-                // Fire right/left looking straight to the game screen canvas
-                sendCanvasKey(LOOK_KEYS.right, rightStickX > deadzone);
-                sendCanvasKey(LOOK_KEYS.left, rightStickX < -deadzone);
+                // Horizontal Axis (Turning)
+                dispatchHardwareKey(CONTROLLER_KEYS.right, stickX > deadzone);
+                dispatchHardwareKey(CONTROLLER_KEYS.left, stickX < -deadzone);
 
-                // Fire up/down looking straight to the game screen canvas
-                sendCanvasKey(LOOK_KEYS.down, rightStickY > deadzone);
-                sendCanvasKey(LOOK_KEYS.up, rightStickY < -deadzone);
+                // Vertical Axis (Looking Up/Down)
+                dispatchHardwareKey(CONTROLLER_KEYS.down, stickY > deadzone);
+                dispatchHardwareKey(CONTROLLER_KEYS.up, stickY < -deadzone);
             }
-            requestAnimationFrame(pollXboxCanvasBridge);
+            requestAnimationFrame(pollXboxHardwareBridge);
         }
 
-        requestAnimationFrame(pollXboxCanvasBridge);
+        requestAnimationFrame(pollXboxHardwareBridge);
     })();
 </script>
+
 
 
 
