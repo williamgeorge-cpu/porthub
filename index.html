@@ -153,18 +153,61 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-    // Force the Emscripten layer to map the Xbox Controller axes natively to the engine mouse look
- <script>var Module = {
-    arguments: ["+mlook"],
-    canvas: document.getElementById('canvas'),
-    
-    // 💡 Add this exact environmental block right under your canvas definition
-    ENV: {
-        "SDL_GAMECONTROLLERCONFIG": "030000005e0400000a0b000005040000,Xbox Controller,a:b0,b:b1,x:b2,y:b3,back:b4,start:b5,leftstick:b8,rightstick:b9,leftshoulder:b6,rightshoulder:b7,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:a4,righttrigger:a5",
-        "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS": "1"
-    }
-};
- </script>
+<!-- Keyboard-level input bridge for the Xbox Controller -->
+<script>
+    (function() {
+        // Map stick directions to standard keyboard code characters
+        const LOOK_KEYS = {
+            up: 'ArrowUp',
+            down: 'ArrowDown',
+            left: 'ArrowLeft',
+            right: 'ArrowRight'
+        };
+
+        let activeKeys = {};
+
+        function triggerKey(code, isPressed) {
+            // Only fire if the state is actually toggling to prevent input flood
+            if (activeKeys[code] === isPressed) return;
+            activeKeys[code] = isPressed;
+
+            const eventType = isPressed ? 'keydown' : 'keyup';
+            const event = new KeyboardEvent(eventType, {
+                code: code,
+                key: code,
+                bubbles: true,
+                cancelable: true
+            });
+            
+            // Dispatch directly to the window so the WASM handler picks it up natively
+            window.dispatchEvent(event);
+        }
+
+        function pollXboxKeyboardBridge() {
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            const pad = gamepads[0]; // Primary Xbox slot
+
+            if (pad) {
+                // XInput Standard: Axis 2 = Right Stick X, Axis 3 = Right Stick Y
+                const stickX = pad.axes[2];
+                const stickY = pad.axes[3];
+                const deadzone = 0.25; // Strict filter to block stick drift
+
+                // Horizontal Panning Look (Right Stick X)
+                triggerKey(LOOK_KEYS.right, stickX > deadzone);
+                triggerKey(LOOK_KEYS.left, stickX < -deadzone);
+
+                // Vertical Pitch Look (Right Stick Y)
+                triggerKey(LOOK_KEYS.down, stickY > deadzone);
+                triggerKey(LOOK_KEYS.up, stickY < -deadzone);
+            }
+            requestAnimationFrame(pollXboxKeyboardBridge);
+        }
+
+        requestAnimationFrame(pollXboxKeyboardBridge);
+    })();
+</script>
+
 
     </body>
 
