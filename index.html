@@ -153,34 +153,18 @@ if (navigator.storage && navigator.storage.persist) {
 }
 
 </script>
-       <!-- Single script tag to bridge your Xbox controller to the global mouse layer -->
-<script>
-    function pollXboxToMouse() {
-        var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-        var pad = gamepads[0]; // Active primary Xbox controller index
-
-        if (pad) {
-            // XInput Standard: Axis 2 is Right Stick X, Axis 3 is Right Stick Y
-            var rightStickX = pad.axes[2]; 
-            var rightStickY = pad.axes[3]; 
-
-            // 15% Deadzone to stop camera drift
-            if (Math.abs(rightStickX) > 0.15 || Math.abs(rightStickY) > 0.15) {
-                
-                // Dispatch directly to the document window instead of the canvas element
-                window.dispatchEvent(new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    movementX: rightStickX * 15, // Adjust your horizontal turn speed here
-                    movementY: rightStickY * 15  // Adjust your vertical look speed here
-                }));
-            }
-        }
-        requestAnimationFrame(pollXboxToMouse);
+    // Force the Emscripten layer to map the Xbox Controller axes natively to the engine mouse look
+ <script>var Module = {
+    arguments: ["+mlook"],
+    canvas: document.getElementById('canvas'),
+    
+    // 💡 Add this exact environmental block right under your canvas definition
+    ENV: {
+        "SDL_GAMECONTROLLERCONFIG": "030000005e0400000a0b000005040000,Xbox Controller,a:b0,b:b1,x:b2,y:b3,back:b4,start:b5,leftstick:b8,rightstick:b9,leftshoulder:b6,rightshoulder:b7,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:a4,righttrigger:a5",
+        "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS": "1"
     }
-    // Launch the global input tracking loop immediately
-    requestAnimationFrame(pollXboxToMouse);
-</script>
+};
+ </script>
 
     </body>
 
