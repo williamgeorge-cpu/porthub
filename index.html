@@ -132,16 +132,16 @@ if (navigator.storage && navigator.storage.persist) {
     const statusDiv = document.getElementById("storage-status");
     
     if (isPersisted) {
-      statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+      statusDiv.innerText = "Saves Protected (ChromeOS Wipes Blocked)";
       statusDiv.style.color = "#00ff00"; // Green color
     } else {
       // If it's not active yet, request it natively
       navigator.storage.persist().then((granted) => {
         if (granted) {
-          statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+          statusDiv.innerText = "Saves Protected (ChromeOS Wipes Blocked)";
           statusDiv.style.color = "#00ff00";
         } else {
-          statusDiv.innerText = "⚠️ Saves Vulnerable (Managed Profile Restriction)";
+          statusDiv.innerText = "Saves Vulnerable (Managed Profile Restriction)";
           statusDiv.style.color = "#ff3333"; // Red color
         }
       });
