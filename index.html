@@ -5,18 +5,54 @@
     <title>Porthub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    <style>
+        /* 4x4 Symmetrical CSS Grid Architecture Layout Matrix */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Forces exactly 4 side-by-side columns */
+            gap: 20px;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            justify-items: center;
+            align-items: center;
+        }
+        .game-grid a {
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        .game-grid img {
+            width: 100%;
+            max-width: 280px; /* Aligns all banners into a completely uniform visual card row */
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .game-grid img:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(176, 42, 42, 0.4);
+        }
+        
+        /* Mobile fallback: Scales down smoothly on small displays */
+        @media (max-width: 900px) {
+            .game-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 500px) {
+            .game-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- 1. CORE GAMES LINK GRID -->
-    <div style="text-align: center; margin: 20px auto;">
-        <a href="htmls/Hollow_Knight.html" style="margin: 10px; display: inline-block;"><img src="thumbnails/hollow_knight_title_screen.jpg" width="400" alt="Hollow Knight" style="border-radius: 8px;"></a>
-        <a href="htmls/Hollow_Knight_Silksong.html" style="margin: 10px; display: inline-block;"><img src="thumbnails/hollow_knight_silksong_title_screen.jpg" width="400" alt="Silksong" style="border-radius: 8px;"></a>
-        <br><br>
-        <a href="https://m-h.org.uk" style="margin: 10px; display: inline-block;"><img src="thumbnails/quake_title_screen.jpg" width="400" alt="Quake 1" style="border-radius: 8px;"></a>
-        <a href="https://m-h.org.uk" style="margin: 10px; display: inline-block;"><img src="thumbnails/quake_2_title_screen.jpeg" width="400" alt="Quake 2" style="border-radius: 8px;"></a>
+    <!-- 1. CORE GAMES LINK GRID (PERFECT 4x4 MATRIX) -->
+    <div class="game-grid">
+        <a href="htmls/Hollow_Knight.html"><img src="thumbnails/hollow_knight_title_screen.jpg" alt="Hollow Knight"></a>
+        <a href="htmls/Hollow_Knight_Silksong.html"><img src="thumbnails/hollow_knight_silksong_title_screen.jpg" alt="Silksong"></a>
+        <a href="https://qwasm.m-h.org.uk"><img src="thumbnails/quake_title_screen.jpg" alt="Quake 1"></a>
+        <a href="https://qwasm2.m-h.org.uk"><img src="thumbnails/quake_2_title_screen.jpeg" alt="Quake 2"></a>
     </div>
-
 
     <!-- 2. ADMINISTRATIVE RETENTION STATUS COMPONENT -->
     <div id="storage-status" style="padding: 5px; font-weight: bold; color: orange; font-family: sans-serif; text-align: center;">
@@ -32,7 +68,7 @@
         <button style="background:#b02a2a; color:#fff; border:none; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%; margin-bottom:15px;" onclick="exportPorthubSave()">1. Download My Save File</button>
         
         <div style="border-top:1px solid #333; margin:10px 0; padding-top:15px;">
-            <!-- IMPORT BUTTONS -->
+            <!-- IMPORT BUTTON -->
             <input type="file" id="porthubImportFile" accept=".pHubSave" style="display:none;" onchange="importPorthubSave(this)">
             <button style="background:#2f2f37; color:#fff; border:1px solid #444; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%;" onclick="document.getElementById('porthubImportFile').click()">2. Upload & Inject Save File</button>
         </div>
@@ -63,53 +99,45 @@
             });
         }
 
-       // Paste this updated version into your root index.html to fix the 5-file spam bug
-function exportPorthubSave() {
-    var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
-    var found = false;
-    var hasDownloaded = false; // 💡 Single global guard flag to instantly freeze the click trigger
+        // Unified Multi-Game Save Scanner (with Hardware Absolute Loop Guard)
+        function exportPorthubSave() {
+            var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
+            var found = false;
+            var alreadyDownloaded = false; // 💡 Hardware lock
 
-    databases.forEach(function(dbName) {
-        var request = indexedDB.open(dbName);
-        request.onsuccess = function(e) {
-            var db = e.target.result;
-            if (!db.objectStoreNames.contains('FILE_DATA')) return;
-            
-            db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
-                var cursor = evt.target.result;
-                if (cursor) {
-                    // 💡 Immediately drop anchor if any parallel loop has already generated a download
-                    if (hasDownloaded) return;
+            databases.forEach(function(dbName) {
+                var request = indexedDB.open(dbName);
+                request.onsuccess = function(e) {
+                    var db = e.target.result;
+                    if (!db.objectStoreNames.contains('FILE_DATA')) return;
+                    
+                    db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
+                        var cursor = evt.target.result;
+                        if (cursor) {
+                            // 💡 Instantly escape before compiling anything if a file has already dropped
+                            if (alreadyDownloaded) return;
 
-                    if (cursor.key.includes('user') || cursor.key.includes('.dat')) {
-                        found = true;
-                        hasDownloaded = true; // 💡 Freeze all other loops from triggering downloads
-                        
-                        var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
-                        var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
-                        var link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        
-                        // Clean, unified naming format
-                        link.download = cursor.key.replace('/', '') + ".pHubSave";
-                        link.click();
-                        return; // Halt this specific cursor process completely
-                    }
-                    cursor.continue();
-                }
-            };
-        };
-    });
-    
-    setTimeout(function() { 
-        if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
-        else alert("Success! Your unique game save has been cleanly compiled into 1 file.");
-    }, 1000);
-}
+                            if (cursor.key.includes('user') || cursor.key.includes('.dat')) {
+                                found = true;
+                                alreadyDownloaded = true; // 💡 Slam the gate shut immediately
+                                
+                                var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
+                                var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
+                                var link = document.createElement('a');
+                                link.href = URL.createObjectURL(blob);
+                                link.download = cursor.key.replace('/', '') + ".pHubSave";
+                                link.click();
+                                return; // Kill the local iteration step
+                            }
+                            cursor.continue();
+                        }
+                    };
+                };
+            });
             
             setTimeout(function() { 
                 if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
-                else alert("Success! Your unique game saves have been compiled to your Downloads folder.");
+                else alert("Success! Your unique game save has been cleanly compiled into 1 file.");
             }, 1000);
         }
 
