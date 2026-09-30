@@ -3,131 +3,142 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Porthub Quake Engine Core</title>
+    <title>Porthub 3D Engine Room</title>
     <style>
-        body { background-color: #111; color: #e0e0e0; font-family: monospace; text-align: center; margin: 0; padding: 20px; }
-        .control-panel { background: #1a1a1e; border: 2px solid #b02a2a; border-radius: 8px; max-width: 480px; margin: 40px auto; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .file-box { background: #25252a; border: 1px dashed #555; padding: 15px; border-radius: 4px; margin: 15px 0; }
-        .btn-start { background: #b02a2a; color: #fff; border: none; padding: 12px 24px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; font-size: 15px; }
-        .btn-start:hover { background: #d03535; }
-        #canvas { display: none; background: #000; width: 100%; max-width: 800px; height: 600px; margin: 20px auto; border: 2px solid #b02a2a; outline: none; }
-        .status-msg { color: #00ff00; margin-top: 15px; font-size: 13px; text-align: left; line-height: 1.6; }
+        body { background-color: #111; color: #fff; font-family: monospace; text-align: center; margin: 0; padding: 10px; overflow: hidden; }
+        #canvas { background: #000; width: calc(min(100vw, 100vh * 4/3)); height: calc(min(100vh, 100vw * 0.75)); max-width: 800px; max-height: 600px; border: 2px solid #b02a2a; border-radius: 6px; display: block; margin: 10px auto; outline: none; }
+        .ui-panel { background: #1a1a1e; border: 1px solid #444; padding: 10px; max-width: 780px; margin: 0 auto; border-radius: 4px; font-size: 12px; text-align: left; }
     </style>
 </head>
 <body>
 
-    <!-- 1. SYSTEM CONTROL CARD INTERFACE -->
-    <div class="control-panel" id="setup-view">
-        <h2 style="color: #b02a2a; margin-top:0;">Porthub Quake 1 Engine</h2>
-        <p style="color:#8a8a90; font-size:13px;">Upload your native PAK0.PAK game data to boot the execution path directly inside your repository sandbox.</p>
-        
-        <div class="file-box">
-            <input type="file" id="pak-file-input" accept=".pak">
-        </div>
-        
-        <button class="btn-start" onclick="processLocalGameFile()">Execute Engine Canvas</button>
-    </div>
-
-    <!-- 2. NATIVE HARDWARE DISPLAY MATRIX -->
     <canvas id="canvas" width="800" height="600" tabindex="-1"></canvas>
-    
-    <div id="debug-log" class="control-panel" style="display:none; max-width: 800px;">
-        <h3 style="color:#b02a2a; margin-top:0;">System Core Diagnostics</h3>
-        <div id="log-terminal" class="status-msg"></div>
+
+    <div class="ui-panel">
+        <strong style="color: #b02a2a;">PORTHUB 3D NATIVE CORE RUNTIME</strong> | 
+        <span>Left Stick: Move/Strafe</span> | 
+        <span>Right Stick: Look Around</span>
+        <div id="gamepad-status" style="color: #00ff00; margin-top: 5px;">Searching for Xbox Controller Input...</div>
     </div>
 
     <script>
-        let gameLoopId = null;
-        let rotationX = 0;
-        let rotationY = 0;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-        function printLog(message) {
-            const terminal = document.getElementById('log-terminal');
-            terminal.innerHTML += "> " + message + "<br>";
-        }
+        // 3D Player State
+        let playerX = 3.5;
+        let playerY = 3.5;
+        let playerAngle = 0;
 
-        function processLocalGameFile() {
-            const fileInput = document.getElementById('pak-file-input');
-            if (fileInput.files.length === 0) {
-                alert("Action Required: Please select a valid pak0.pak asset file first!");
-                return;
-            }
+        // Built-in 3D Level Map Grid (1 = Wall, 0 = Empty Space)
+        const mapSize = 8;
+        const map = [,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+            [1,1,1,1,1,1,1,1]
+        ];
 
-            const selectedFile = fileInput.files[0];
-            
-            // Hide setup panel and scale out active graphic components
-            document.getElementById('setup-view').style.display = 'none';
-            document.getElementById('debug-log').style.display = 'block';
-            const mainCanvas = document.getElementById('canvas');
-            mainCanvas.style.display = 'block';
-            mainCanvas.focus();
+        // Core 3D Raycasting Engine Logic
+        function render3DScene() {
+            // 1. Draw Ceiling and Floor Backgrounds
+            ctx.fillStyle = "#222"; // Ceiling
+            ctx.fillRect(0, 0, canvas.width, canvas.height / 2);
+            ctx.fillStyle = "#151515"; // Floor
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
 
-            printLog("Initializing isolated core canvas ecosystem...");
-            printLog("Validating local data resource stream: " + selectedFile.name);
-            printLog("Mounting native hardware matrix architecture...");
-            printLog("🔒 Xbox controller map configuration array: ACTIVE.");
-            printLog("Polling gamepad axes inputs (Left Stick: Walk, Right Stick: Camera)...");
+            const fov = 60 * (Math.PI / 180);
+            const numRays = canvas.width;
+            const halfFov = fov / 2;
 
-            // Spin up the physical game loop sequence to process inputs natively
-            startHardwareEngineLoop();
-        }
+            // 2. Cast a Light Ray for Every Vertical Column on the Screen
+            for (let i = 0; i < numRays; i++) {
+                let rayAngle = (playerAngle - halfFov) + (i / numRays) * fov;
+                let distanceToWall = 0;
+                let hitWall = false;
 
-        function startHardwareEngineLoop() {
-            const activeCanvas = document.getElementById('canvas');
-            const gl = activeCanvas.getContext('2d');
+                let eyeX = Math.cos(rayAngle);
+                let eyeY = Math.sin(rayAngle);
 
-            function renderTick() {
-                // Poll any active gamepads (Xbox controllers) natively via Chrome device pipeline
-                const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-                const xboxPad = gamepads[0]; 
+                while (!hitWall && distanceToWall < 16) {
+                    distanceToWall += 0.05;
+                    let testX = Math.floor(playerX + eyeX * distanceToWall);
+                    let testY = Math.floor(playerY + eyeY * distanceToWall);
 
-                let walkSpeedX = 0;
-                let walkSpeedY = 0;
-
-                if (xboxPad) {
-                    const deadzone = 0.2;
-                    
-                    // Left Analog Stick: Axis 0 (Horizontal Strafe), Axis 1 (Vertical Walk)
-                    if (Math.abs(xboxPad.axes[0]) > deadzone) walkSpeedX = xboxPad.axes[0] * 5;
-                    if (Math.abs(xboxPad.axes[1]) > deadzone) walkSpeedY = xboxPad.axes[1] * -5;
-
-                    // Right Analog Stick: Axis 2 (Horizontal Camera Yaw), Axis 3 (Vertical Camera Pitch)
-                    if (Math.abs(xboxPad.axes[2]) > deadzone) rotationX += xboxPad.axes[2] * 2;
-                    if (Math.abs(xboxPad.axes[3]) > deadzone) rotationY += xboxPad.axes[3] * 2;
+                    if (testX < 0 || testX >= mapSize || testY < 0 || testY >= mapSize) {
+                        hitWall = true;
+                        distanceToWall = 16;
+                    } else if (map[testY][testX] > 0) {
+                        hitWall = true;
+                    }
                 }
 
-                // Render a clean graphic confirmation display screen directly to the canvas context
-                gl.fillStyle = '#050505';
-                gl.fillRect(0, 0, activeCanvas.width, activeCanvas.height);
+                // Correct Fish-eye lens distortion
+                let correctedDistance = distanceToWall * Math.cos(rayAngle - playerAngle);
 
-                // Draw a retro horizontal grid pattern to visually simulate 3D camera rotation and forward motion
-                gl.strokeStyle = '#221111';
-                gl.lineWidth = 1;
-                for (let i = 0; i < activeCanvas.height; i += 40) {
-                    gl.beginPath();
-                    gl.moveTo(0, i + (walkSpeedY % 40));
-                    gl.lineTo(activeCanvas.width, i + (walkSpeedY % 40));
-                    gl.stroke();
+                // Calculate Wall Height based on distance
+                let wallHeight = Math.min(canvas.height, canvas.height / correctedDistance);
+
+                // Calculate Shading (Further walls appear darker)
+                let colorIntensity = Math.max(20, 180 - (correctedDistance * 12));
+                ctx.fillStyle = `rgb(${colorIntensity}, ${colorIntensity * 0.2}, ${colorIntensity * 0.2})`;
+
+                // Draw the vertical wall slice
+                ctx.fillRect(i, (canvas.height / 2) - (wallHeight / 2), 1, wallHeight);
+            }
+        }
+
+        // Native Xbox Controller Input Polling System
+        function pollHardwareInput() {
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            const xbox = gamepads[0];
+            const statusDiv = document.getElementById('gamepad-status');
+
+            if (xbox) {
+                statusDiv.innerText = `🎮 Xbox Controller Connected: ${xbox.id}`;
+                statusDiv.style.color = "#00ff00";
+
+                const deadzone = 0.2;
+
+                // Left Stick Vertical Axis (Move Forward/Backward)
+                if (Math.abs(xbox.axes[1]) > deadzone) {
+                    let moveX = playerX + Math.cos(playerAngle) * (-xbox.axes[1] * 0.05);
+                    let moveY = playerY + Math.sin(playerAngle) * (-xbox.axes[1] * 0.05);
+                    if (map[Math.floor(playerY)][Math.floor(moveX)] === 0) playerX = moveX;
+                    if (map[Math.floor(moveY)][Math.floor(playerX)] === 0) playerY = moveY;
                 }
 
-                // Draw an alignment 3D targeting sight box that shifts around based on your controller sticks
-                gl.fillStyle = '#b02a2a';
-                let boxX = (activeCanvas.width / 2 - 25) + (rotationX % 200);
-                let boxY = (activeCanvas.height / 2 - 25) + (rotationY % 200);
-                gl.fillRect(boxX, boxY, 50, 50);
+                // Left Stick Horizontal Axis (Strafe Left/Right)
+                if (Math.abs(xbox.axes[0]) > deadzone) {
+                    let strafeX = playerX + Math.cos(playerAngle + Math.PI / 2) * (xbox.axes[0] * 0.04);
+                    let strafeY = playerY + Math.sin(playerAngle + Math.PI / 2) * (xbox.axes[0] * 0.04);
+                    if (map[Math.floor(playerY)][Math.floor(strafeX)] === 0) playerX = strafeX;
+                    if (map[Math.floor(strafeY)][Math.floor(playerX)] === 0) playerY = strafeY;
+                }
 
-                // Overlay active spatial feedback values
-                gl.fillStyle = '#ffffff';
-                gl.font = '14px monospace';
-                gl.fillText("ENGINE STATE: ACTIVE RUNTIME PLATFORM", 20, 40);
-                gl.fillText("CAMERA POSITION: YAW(" + rotationX.toFixed(1) + ") PITCH(" + rotationY.toFixed(1) + ")", 20, 70);
-                gl.fillText("VELOCITY VECTOR: FORWARD(" + walkSpeedY.toFixed(1) + ") STRAFE(" + walkSpeedX.toFixed(1) + ")", 20, 100);
-
-                gameLoopId = requestAnimationFrame(renderTick);
+                // Right Stick Horizontal Axis (Turn Camera Left/Right)
+                if (Math.abs(xbox.axes[2]) > deadzone) {
+                    playerAngle += xbox.axes[2] * 0.04;
+                }
+            } else {
+                statusDiv.innerText = "🔌 Searching for Xbox Controller... Press any button to pair.";
+                statusDiv.style.color = "#ffaa00";
             }
-
-            renderTick();
         }
+
+        // Master Frame Loop Sequence
+        function engineTick() {
+            pollHardwareInput();
+            render3DScene();
+            requestAnimationFrame(engineTick);
+        }
+
+        // Initialize Engine
+        canvas.focus();
+        engineTick();
     </script>
 </body>
 </html>
