@@ -2,83 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Porthub Quake Engine Room</title>
+    <title>Launching Qwasm...</title>
     <style>
-        /* Symmetrical Dark Dashboard Canvas Styling Layout */
-        body { background-color: #16161a; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .engine-card { background: #1f1f23; border: 2px solid #b02a2a; border-radius: 10px; max-width: 500px; margin: 50px auto; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
-        .file-selector { background: #2a2a30; border: 1px dashed #444; padding: 15px; border-radius: 6px; margin: 20px 0; }
-        .boot-btn { background: #b02a2a; color: white; border: none; padding: 12px 24px; font-weight: bold; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; transition: background 0.2s; }
-        .boot-btn:hover { background: #d03535; }
-        canvas { display: none; width: calc(min(100vw, 100vh * 4/3)); height: calc(min(100vh, 100vw * 0.75)); background: #000; margin: 20px auto; border-radius: 6px; outline: none; }
+        body { background: #16161a; color: #fff; font-family: sans-serif; text-align: center; padding-top: 100px; }
+        .btn { background: #b02a2a; color: white; border: none; padding: 12px 24px; font-weight: bold; font-size: 16px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 20px; }
     </style>
 </head>
 <body>
-
-    <!-- Native Setup Workspace Panel Interface -->
-    <div class="engine-card" id="porthub-setup-panel">
-        <h2 style="color: #b02a2a; margin-top: 0;">Porthub Quake 1 Core</h2>
-        <p style="color: #a0a0a5; font-size: 0.9em;">Load your untouched asset directory data straight into your PWA engine layout matrix</p>
-        
-        <div class="file-selector">
-            <input type="file" id="pak-uploader" multiple accept=".pak">
-        </div>
-        
-        <button class="boot-btn" onclick="initializePorthubWasmEngine()">Launch Local Engine Canvas</button>
-    </div>
-
-    <!-- Active Hardware Rendering Canvas Box -->
-    <canvas id="canvas" tabindex="-1"></canvas>
+    <h2>Opening Quake 1 Engine Room...</h2>
+    <p>If the game page does not open automatically, tap the button below:</p>
+    <a href="https://m-h.org.uk" class="btn">Launch Engine Canvas</a>
 
     <script>
-        // Core WebAssembly Object Engine Driver Setup Matrix
-        var Module = {
-            canvas: document.getElementById('canvas'),
-            arguments: [
-                "+jlook",              // Permanently locks joystick aiming view engine mechanics on
-                "joyadvanced", "1",     // Activates advanced analog stick structural settings
-                "joyforwardaxis", "1",  // Maps Left Stick Y -> Forward and Backward walking velocity
-                "joysideaxis", "2",     // Maps Left Stick X -> Strafe Left and Strafe Right stepping velocity
-                "joypitchaxis", "4",    // Maps Right Stick Y -> Vertical View Pitching (Looking Up/Down)
-                "joyyawaxis", "3"       // Maps Right Stick X -> Horizontal View Yawing (Turning Left/Right)
-            ],
-            print: function(text) { console.log("Engine Output: " + text); },
-            printErr: function(text) { console.error("Engine Error: " + text); },
-            setStatus: function(text) { console.log("Status Shift: " + text); }
-        };
-
-        function initializePorthubWasmEngine() {
-            const files = document.getElementById('pak-uploader').files;
-            if (files.length === 0) {
-                alert("Action Required: Please select your game's pak0.pak configuration archive first!");
-                return;
-            }
-
-            // Hide configuration panels and slide up the raw graphic matrix viewport cleanly
-            document.getElementById('porthub-setup-panel').style.display = 'none';
-            const gameCanvas = document.getElementById('canvas');
-            gameCanvas.style.display = 'block';
-            gameCanvas.focus();
-
-            // Native hardware background canvas rendering initializer wrapper
-            console.log("Canvas targeted. Local execution sequence initialized.");
-            simulateLocalEngineFallback(files[0].name);
-        }
-
-        // Simulates the internal WebAssembly file parser layers directly on your hardware
-        function simulateLocalEngineFallback(fileName) {
-            const ctx = Module.canvas.getContext('2d');
-            ctx.fillStyle = '#222';
-            ctx.fillRect(0, 0, Module.canvas.width, Module.canvas.height);
-            ctx.fillStyle = '#b02a2a';
-            ctx.font = '20px sans-serif';
-            ctx.fillText("Engine Core Mounted Successfully", 50, 100);
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px sans-serif';
-            ctx.fillText("Loaded Data Frame File Resource: " + fileName, 50, 140);
-            ctx.fillText("Xbox Input Bridge Config Array Active - Polling Axis Mappings...", 50, 180);
-        }
+        // Bypasses the iframe connection refusal instantly by opening the engine directly
+        window.location.href = "https://m-h.org.uk";
     </script>
 </body>
 </html>
