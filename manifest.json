@@ -8,7 +8,7 @@
   "icons": [
     {
       "src": "icon.png",
-      "sizes": "420x425",
+      "sizes": "425x420",
       "type": "image/png"
     }
   ]
