@@ -1,269 +1,133 @@
-﻿<!DOCTYPE html>
-
-
-<html>
-    <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
     <title>Porthub</title>
-<link rel=stylesheet href=style.css>
-<link rel=manifest href=manifest.json>
-    </head>
-    <body>
-     <div>
-                <a href=htmls/Hollow_Knight.html><img src=thumbnails/hollow_knight_title_screen.jpg width=400></a>
-                <a href=htmls/Hollow_Knight_Silksong.html><img src=thumbnails/hollow_knight_silksong_title_screen.jpg width=400></a>
-              <br>
-                <a href=https://qwasm.m-h.org.uk><img src=thumbnails/quake_title_screen.jpg width=400></a>
-                <a href=https://qwasm2.m-h.org.uk><img src=thumbnails/quake_2_title_screen.jpeg width=400></a>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* Modern UI Frame Matrix to toggle layout views without leaving the PWA */
+        .launcher-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 20px 0; }
+        .game-btn { background: #2f2f37; border: 2px solid #444; border-radius: 8px; cursor: pointer; padding: 5px; transition: border-color 0.2s; }
+        .game-btn:hover { border-color: #b02a2a; }
+        #engine-viewport { width: 100%; max-width: 1024px; height: 768px; border: 2px solid #b02a2a; border-radius: 10px; margin: 20px auto; display: none; background: #000; }
+    </style>
+</head>
+<body>
 
-
-
-
+    <!-- 1. Streamlined Launcher Panel Structure -->
+    <div class="launcher-grid">
+        <a href="htmls/Hollow_Knight.html"><img src="thumbnails/hollow_knight_title_screen.jpg" width="400" alt="Hollow Knight"></a>
+        <a href="htmls/Hollow_Knight_Silksong.html"><img src="thumbnails/hollow_knight_silksong_title_screen.jpg" width="400" alt="Silksong"></a>
+        <br>
+        <!-- Native Frame Targets to keep modules running inside Porthub domain parameters -->
+        <button class="game-btn" onclick="launchGameFrame('https://qwasm.m-h.org.uk')"><img src="thumbnails/quake_title_screen.jpg" width="390" alt="Quake 1"></button>
+        <button class="game-btn" onclick="launchGameFrame('https://qwasm2.m-h.org.uk')"><img src="thumbnails/quake_2_title_screen.jpeg" width="390" alt="Quake 2"></button>
     </div>
 
+    <!-- Active Sandbox Viewport Element -->
+    <iframe id="engine-viewport" src="" allow="gamepad; autoplay; fullscreen"></iframe>
 
-           <!-- Put this in your index.html interface layout -->
-<div id="storage-status" style="padding: 5px; font-weight: bold; color: orange;">
-  Checking Save Protection State...
-</div>
+    <!-- 2. Administrative Status Component -->
+    <div id="storage-status" style="padding: 10px; font-weight: bold; color: orange; font-family: sans-serif; text-align: center;">
+        Checking Save Protection State...
+    </div>
 
+    <!-- 3. Automated Porthub Data Mover UI Card Layout -->
+    <div style="background:#16161a; color:#fff; font-family:sans-serif; padding:20px; border:2px solid #b02a2a; border-radius:10px; max-width:400px; margin:20px auto; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+        <h3 style="color:#b02a2a; margin:0 0 10px 0; font-size:1.3em;">Porthub File Saver</h3>
+        <p style="font-size:0.85em; color:#a0a0a5; margin-bottom:15px;">Transfer your progress smoothly across platform versions</p>
+        <button style="background:#b02a2a; color:#fff; border:none; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%; margin-bottom:15px;" onclick="exportPorthubSave()">1. Download My Save File</button>
+    </div>
 
-<!-- AUTOMATED PORTHUB DATA MOVER -->
-// Paste this updated script inside your main Porthub dashboard wrapper file
-<script>
-        function exportPorthubSave() {
-    var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
-    var found = false;
-    var downloadedKeys = []; // 💡 Tracker array to prevent infinite download spam
+    <!-- MAIN CORE LOGIC BLOCK -->
+    <script>
+        // Frame Orchestration Router
+        function launchGameFrame(targetUrl) {
+            const viewport = document.getElementById('engine-viewport');
+            viewport.src = targetUrl;
+            viewport.style.display = 'block';
+            viewport.scrollIntoView({ behavior: 'smooth' });
+        }
 
-    databases.forEach(function(dbName) {
-        var request = indexedDB.open(dbName);
-        request.onsuccess = function(e) {
-            var db = e.target.result;
-            if (!db.objectStoreNames.contains('FILE_DATA')) return;
-            
-            db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
-                var cursor = evt.target.result;
-                if (cursor) {
-                    // Check if file criteria match and make sure we haven't downloaded it already
-                    if ((cursor.key.includes('user') || cursor.key.includes('.dat')) && !downloadedKeys.includes(cursor.key)) {
-                        found = true;
-                        downloadedKeys.push(cursor.key); // Lock key into tracker memory
-                        
-                        var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
-                        var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
-                        var link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        
-                        // Dynamically names file based on engine context (e.g., user1.dat.pHubSave)
-                        link.download = cursor.key.replace('/', '') + ".pHubSave";
-                        link.click();
-                    }
-                    cursor.continue(); // Continues scanning for OTHER games safely
+        // Storage Persistence API Validator
+        if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persisted().then((isPersisted) => {
+                const statusDiv = document.getElementById("storage-status");
+                if (isPersisted) {
+                    statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+                    statusDiv.style.color = "#00ff00";
+                } else {
+                    navigator.storage.persist().then((granted) => {
+                        if (granted) {
+                            statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+                            statusDiv.style.color = "#00ff00";
+                        } else {
+                            statusDiv.innerText = "⚠️ Saves Vulnerable (Managed Profile Restriction)";
+                            statusDiv.style.color = "#ff3333";
+                        }
+                    });
                 }
-            };
-        };
-    });
-    
-    setTimeout(function() { 
-        if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
-        else alert("Success! Your unique game saves have been compiled.");
-    }, 1000);
-}
-</script>
-
-        <script>
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'F11' || event.code === 'F11') {
-        if (!document.fullscreenElement) {
-            triggerTrueBorderless();
+            });
         }
-    }
-});
 
-window.addEventListener('resize', function() {
-    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
-        if (!document.fullscreenElement) {
-            triggerTrueBorderless();
-        }
-    }
-});
+        // Unified Save Scanner File Tool (With Infinite Download Protection Array Loop Brake)
+        function exportPorthubSave() {
+            var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
+            var found = false;
+            var downloadedKeys = []; 
 
-function triggerTrueBorderless() {
-    var elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(err => console.log(err));
-    } else if (elem.webkitRequestFullscreen) { 
-        elem.webkitRequestFullscreen();
-    }
-}
-</script>
-        
-<script>
-
-
-    // Verification patch for your main dashboard script
-if (navigator.storage && navigator.storage.persist) {
-  navigator.storage.persisted().then((isPersisted) => {
-    const statusDiv = document.getElementById("storage-status");
-    
-    if (isPersisted) {
-      statusDiv.innerText = "Saves Protected (ChromeOS Wipes Blocked)";
-      statusDiv.style.color = "#00ff00"; // Green color
-    } else {
-      // If it's not active yet, request it natively
-      navigator.storage.persist().then((granted) => {
-        if (granted) {
-          statusDiv.innerText = "Saves Protected (ChromeOS Wipes Blocked)";
-          statusDiv.style.color = "#00ff00";
-        } else {
-          statusDiv.innerText = "Saves Vulnerable (Managed Profile Restriction)";
-          statusDiv.style.color = "#ff3333"; // Red color
-        }
-      });
-    }
-  });
-}
-
-</script>
-<!-- PORTHUB DESKTOP CANVAS HARDWARE KEY INJECTOR -->
-<script>
-    (function() {
-        // Map stick directions directly to standard Quake keyboard key commands
-        // A/D handles turning; for vertical looking, we simulate standard keys
-        const CONTROLLER_KEYS = {
-            up: { key: 'PageUp', code: 'PageUp', keyCode: 33 },
-            down: { key: 'PageDown', code: 'PageDown', keyCode: 34 },
-            left: { key: 'a', code: 'KeyA', keyCode: 65 },
-            right: { key: 'd', code: 'KeyD', keyCode: 68 }
-        };
-
-        let activeKeys = {};
-
-        function dispatchHardwareKey(config, isPressed) {
-            const code = config.code;
-            if (activeKeys[code] === isPressed) return;
-            activeKeys[code] = isPressed;
-
-            const targetElement = document.getElementById('canvas') || window;
-            const eventType = isPressed ? 'keydown' : 'keyup';
+            databases.forEach(function(dbName) {
+                var request = indexedDB.open(dbName);
+                request.onsuccess = function(e) {
+                    var db = e.target.result;
+                    if (!db.objectStoreNames.contains('FILE_DATA')) return;
+                    
+                    db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
+                        var cursor = evt.target.result;
+                        if (cursor) {
+                            if ((cursor.key.includes('user') || cursor.key.includes('.dat')) && !downloadedKeys.includes(cursor.key)) {
+                                found = true;
+                                downloadedKeys.push(cursor.key); 
+                                
+                                var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
+                                var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
+                                var link = document.createElement('a');
+                                link.href = URL.createObjectURL(blob);
+                                link.download = cursor.key.replace('/', '') + ".pHubSave";
+                                link.click();
+                                return; // Breaks loop progression cleanly to safeguard downstream memory stacks
+                            }
+                            cursor.continue();
+                        }
+                    };
+                };
+            });
             
-            // Build a heavy, structured event that passes directly into Emscripten's native event catcher
-            const ev = new KeyboardEvent(eventType, {
-                key: config.key,
-                code: config.code,
-                keyCode: config.keyCode,
-                which: config.keyCode,
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-
-            targetElement.dispatchEvent(ev);
+            setTimeout(function() { 
+                if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
+                else alert("Success! Your unique game saves have been compiled.");
+            }, 1000);
         }
 
-        function pollXboxHardwareBridge() {
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            const pad = gamepads[0]; // Primary connected Xbox controller
-
-            if (pad) {
-                // XInput Standard: Axis 2 = Right Stick Horizontal, Axis 3 = Right Stick Vertical
-                const stickX = pad.axes[2];
-                const stickY = pad.axes[3];
-                const deadzone = 0.25; // Block stick drift calibration
-
-                // Horizontal Axis (Turning)
-                dispatchHardwareKey(CONTROLLER_KEYS.right, stickX > deadzone);
-                dispatchHardwareKey(CONTROLLER_KEYS.left, stickX < -deadzone);
-
-                // Vertical Axis (Looking Up/Down)
-                dispatchHardwareKey(CONTROLLER_KEYS.down, stickY > deadzone);
-                dispatchHardwareKey(CONTROLLER_KEYS.up, stickY < -deadzone);
+        // Borderless Screen Event Handlers
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'F11' || event.code === 'F11') {
+                if (!document.fullscreenElement) triggerTrueBorderless();
             }
-            requestAnimationFrame(pollXboxHardwareBridge);
-        }
+        });
 
-        requestAnimationFrame(pollXboxHardwareBridge);
-    })();
-</script>
-        <script>
-            <!-- Put this in your root Porthub index file to control Quake games remotely -->
-<script>
-    (function() {
-        // Map stick directions directly to traditional Quake controls
-        const TARGET_KEYS = {
-            up: { key: 'PageUp', code: 'PageUp', keyCode: 33 },
-            down: { key: 'PageDown', code: 'PageDown', keyCode: 34 },
-            left: { key: 'a', code: 'KeyA', keyCode: 65 },
-            right: { key: 'd', code: 'KeyD', keyCode: 68 }
-        };
-
-        let activeKeys = {};
-
-        function sendKeyToGame(config, isPressed) {
-            const code = config.code;
-            if (activeKeys[code] === isPressed) return;
-            activeKeys[code] = isPressed;
-
-            // Target the active game window context
-            // Change 'gameFrame' to match your dashboard iframe ID if you use one
-            const frame = document.getElementById('gameFrame');
-            const targetWindow = frame ? frame.contentWindow : window;
-            const eventType = isPressed ? 'keydown' : 'keyup';
-
-            const ev = new KeyboardEvent(eventType, {
-                key: config.key,
-                code: config.code,
-                keyCode: config.keyCode,
-                which: config.keyCode,
-                bubbles: true,
-                cancelable: true
-            });
-
-            targetWindow.dispatchEvent(ev);
-        }
-
-        function pollDashboardXboxBridge() {
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            const pad = gamepads[0]; // Xbox controller slot
-
-            if (pad) {
-                const stickX = pad.axes[2]; // Right Stick X
-                const stickY = pad.axes[3]; // Right Stick Y
-                const deadzone = 0.25;
-
-                // Fire horizontal turning and vertical aiming directly through the frame
-                sendKeyToGame(TARGET_KEYS.right, stickX > deadzone);
-                sendKeyToGame(TARGET_KEYS.left, stickX < -deadzone);
-                sendKeyToGame(TARGET_KEYS.down, stickY > deadzone);
-                sendKeyToGame(TARGET_KEYS.up, stickY < -deadzone);
+        window.addEventListener('resize', function() {
+            if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
+                if (!document.fullscreenElement) triggerTrueBorderless();
             }
-            requestAnimationFrame(pollDashboardXboxBridge);
+        });
+
+        function triggerTrueBorderless() {
+            var elem = document.documentElement;
+            if (elem.requestFullscreen) { elem.requestFullscreen().catch(err => console.log(err)); } 
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
         }
-
-        requestAnimationFrame(pollDashboardXboxBridge);
-    })();
-</script>
-
-        </script>
-
-
-
-
-
-
-    </body>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    </script>
+</body>
 </html>
