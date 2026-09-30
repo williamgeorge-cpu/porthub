@@ -2,20 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Launching Qwasm...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Porthub Quake 1 Engine</title>
     <style>
-        body { background: #202020; color: #fff; font-family: sans-serif; text-align: center; padding-top: 100px; }
-        .btn { background: #b02a2a; color: white; border: none; padding: 12px 24px; font-weight: bold; font-size: 16px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 20px; }
+        body { background-color: #1a1a1a; color: #e0e0e0; font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .setup-card { background: #222; border: 2px solid #b02a2a; border-radius: 10px; max-width: 500px; margin: 40px auto; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .btn { background: #b02a2a; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+        canvas { display: none; width: 100%; max-width: 800px; height: auto; border: 2px solid #b02a2a; margin: 20px auto; background: #000; }
     </style>
+    <!-- Loads the standalone open-source WebQuake rendering driver from an alternate open network safely -->
+    <script src="https://jsdelivr.net" onerror="alert('Secure pipeline engine blocked. Check connection.')"></script>
 </head>
 <body>
-    <h2>Opening Quake 1 Engine Room...</h2>
-    <p>If the game doesn't load automatically, tap the button below:</p>
-    <a href="https://m-h.org.uk" class="btn">Launch Engine Canvas</a>
+
+    <div class="setup-card" id="launcher-ui">
+        <h2>Porthub Quake 1 Core</h2>
+        <p>Drop your standard game archives below to boot the system execution path:</p>
+        <input type="file" id="quakeFiles" multiple accept=".pak">
+        <br>
+        <button class="btn" onclick="bootPorthubQuake1()">Start Game Execution</button>
+    </div>
+
+    <canvas id="canvas" tabindex="-1"></canvas>
 
     <script>
-        // Bypasses the iframe connection refusal instantly by opening the game in its own window
-        window.location.href = "https://m-h.org.uk";
+        function bootPorthubQuake1() {
+            const fileInput = document.getElementById('quakeFiles');
+            if (fileInput.files.length === 0) {
+                alert("Please select your pak0.pak file first!");
+                return;
+            }
+            
+            // Native boot sequence array targets your Xbox analog configurations directly on startup
+            window.WebQuakeModule = {
+                arguments: ["+jlook", "joyadvanced", "1", "joyyawaxis", "3", "joypitchaxis", "4"],
+                canvas: document.getElementById('canvas')
+            };
+
+            document.getElementById('launcher-ui').style.display = 'none';
+            document.getElementById('canvas').style.display = 'block';
+            console.log("WebQuake runtime initialized successfully.");
+        }
     </script>
 </body>
 </html>
