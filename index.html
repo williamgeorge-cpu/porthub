@@ -63,40 +63,49 @@
             });
         }
 
-        // Unified Multi-Game Save Scanner (with Loop Brake Optimization)
-        function exportPorthubSave() {
-            var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
-            var found = false;
-            var downloadedKeys = []; // Tracks key blocks to prevent infinite duplicate download loops
+       // Paste this updated version into your root index.html to fix the 5-file spam bug
+function exportPorthubSave() {
+    var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
+    var found = false;
+    var hasDownloaded = false; // 💡 Single global guard flag to instantly freeze the click trigger
 
-            databases.forEach(function(dbName) {
-                var request = indexedDB.open(dbName);
-                request.onsuccess = function(e) {
-                    var db = e.target.result;
-                    if (!db.objectStoreNames.contains('FILE_DATA')) return;
-                    
-                    db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
-                        var cursor = evt.target.result;
-                        if (cursor) {
-                            // Check if item meets criteria and hasn't dropped to client downloads yet
-                            if ((cursor.key.includes('user') || cursor.key.includes('.dat')) && !downloadedKeys.includes(cursor.key)) {
-                                found = true;
-                                downloadedKeys.push(cursor.key); // Register key out of parsing loops
-                                
-                                var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
-                                var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
-                                var link = document.createElement('a');
-                                link.href = URL.createObjectURL(blob);
-                                
-                                // Dynamic filename assignment based on native key parameters
-                                link.download = cursor.key.replace('/', '') + ".pHubSave";
-                                link.click();
-                            }
-                            cursor.continue(); // Safe forward tracking for separate game configurations
-                        }
-                    };
-                };
-            });
+    databases.forEach(function(dbName) {
+        var request = indexedDB.open(dbName);
+        request.onsuccess = function(e) {
+            var db = e.target.result;
+            if (!db.objectStoreNames.contains('FILE_DATA')) return;
+            
+            db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
+                var cursor = evt.target.result;
+                if (cursor) {
+                    // 💡 Immediately drop anchor if any parallel loop has already generated a download
+                    if (hasDownloaded) return;
+
+                    if (cursor.key.includes('user') || cursor.key.includes('.dat')) {
+                        found = true;
+                        hasDownloaded = true; // 💡 Freeze all other loops from triggering downloads
+                        
+                        var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
+                        var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
+                        var link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        
+                        // Clean, unified naming format
+                        link.download = cursor.key.replace('/', '') + ".pHubSave";
+                        link.click();
+                        return; // Halt this specific cursor process completely
+                    }
+                    cursor.continue();
+                }
+            };
+        };
+    });
+    
+    setTimeout(function() { 
+        if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
+        else alert("Success! Your unique game save has been cleanly compiled into 1 file.");
+    }, 1000);
+}
             
             setTimeout(function() { 
                 if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
