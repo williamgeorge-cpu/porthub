@@ -213,6 +213,66 @@ if (navigator.storage && navigator.storage.persist) {
         requestAnimationFrame(pollXboxHardwareBridge);
     })();
 </script>
+        <script>
+            <!-- Put this in your root Porthub index file to control Quake games remotely -->
+<script>
+    (function() {
+        // Map stick directions directly to traditional Quake controls
+        const TARGET_KEYS = {
+            up: { key: 'PageUp', code: 'PageUp', keyCode: 33 },
+            down: { key: 'PageDown', code: 'PageDown', keyCode: 34 },
+            left: { key: 'a', code: 'KeyA', keyCode: 65 },
+            right: { key: 'd', code: 'KeyD', keyCode: 68 }
+        };
+
+        let activeKeys = {};
+
+        function sendKeyToGame(config, isPressed) {
+            const code = config.code;
+            if (activeKeys[code] === isPressed) return;
+            activeKeys[code] = isPressed;
+
+            // Target the active game window context
+            // Change 'gameFrame' to match your dashboard iframe ID if you use one
+            const frame = document.getElementById('gameFrame');
+            const targetWindow = frame ? frame.contentWindow : window;
+            const eventType = isPressed ? 'keydown' : 'keyup';
+
+            const ev = new KeyboardEvent(eventType, {
+                key: config.key,
+                code: config.code,
+                keyCode: config.keyCode,
+                which: config.keyCode,
+                bubbles: true,
+                cancelable: true
+            });
+
+            targetWindow.dispatchEvent(ev);
+        }
+
+        function pollDashboardXboxBridge() {
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            const pad = gamepads[0]; // Xbox controller slot
+
+            if (pad) {
+                const stickX = pad.axes[2]; // Right Stick X
+                const stickY = pad.axes[3]; // Right Stick Y
+                const deadzone = 0.25;
+
+                // Fire horizontal turning and vertical aiming directly through the frame
+                sendKeyToGame(TARGET_KEYS.right, stickX > deadzone);
+                sendKeyToGame(TARGET_KEYS.left, stickX < -deadzone);
+                sendKeyToGame(TARGET_KEYS.down, stickY > deadzone);
+                sendKeyToGame(TARGET_KEYS.up, stickY < -deadzone);
+            }
+            requestAnimationFrame(pollDashboardXboxBridge);
+        }
+
+        requestAnimationFrame(pollDashboardXboxBridge);
+    })();
+</script>
+
+        </script>
 
 
 
