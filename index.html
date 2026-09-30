@@ -29,7 +29,8 @@
 
 <!-- AUTOMATED PORTHUB DATA MOVER -->
 // Paste this updated script inside your main Porthub dashboard wrapper file
-function exportPorthubSave() {
+<script>
+        function exportPorthubSave() {
     var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
     var found = false;
     var downloadedKeys = []; // 💡 Tracker array to prevent infinite download spam
@@ -68,6 +69,7 @@ function exportPorthubSave() {
         else alert("Success! Your unique game saves have been compiled.");
     }, 1000);
 }
+</script>
 
         <script>
 document.addEventListener('keydown', function(event) {
