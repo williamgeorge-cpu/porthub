@@ -5,77 +5,68 @@
     <title>Porthub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <style>
-        /* Modern UI Frame Matrix to toggle layout views without leaving the PWA */
-        .launcher-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 20px 0; }
-        .game-btn { background: #2f2f37; border: 2px solid #444; border-radius: 8px; cursor: pointer; padding: 5px; transition: border-color 0.2s; }
-        .game-btn:hover { border-color: #b02a2a; }
-        #engine-viewport { width: 100%; max-width: 1024px; height: 768px; border: 2px solid #b02a2a; border-radius: 10px; margin: 20px auto; display: none; background: #000; }
-    </style>
 </head>
 <body>
 
-    <!-- 1. Streamlined Launcher Panel Structure -->
-    <div class="launcher-grid">
+    <!-- 1. CORE GAMES LINK GRID -->
+    <div style="text-align: center; margin: 20px auto;">
         <a href="htmls/Hollow_Knight.html"><img src="thumbnails/hollow_knight_title_screen.jpg" width="400" alt="Hollow Knight"></a>
         <a href="htmls/Hollow_Knight_Silksong.html"><img src="thumbnails/hollow_knight_silksong_title_screen.jpg" width="400" alt="Silksong"></a>
-        <br>
-        <!-- Native Frame Targets to keep modules running inside Porthub domain parameters -->
-        <button class="game-btn" onclick="launchGameFrame('https://qwasm.m-h.org.uk')"><img src="thumbnails/quake_title_screen.jpg" width="390" alt="Quake 1"></button>
-        <button class="game-btn" onclick="launchGameFrame('https://qwasm2.m-h.org.uk')"><img src="thumbnails/quake_2_title_screen.jpeg" width="390" alt="Quake 2"></button>
+        <br><br>
+        <a href="https://m-h.org.uk"><img src="thumbnails/quake_title_screen.jpg" width="400" alt="Quake 1"></a>
+        <a href="https://m-h.org.uk"><img src="thumbnails/quake_2_title_screen.jpeg" width="400" alt="Quake 2"></a>
     </div>
 
-    <!-- Active Sandbox Viewport Element -->
-    <iframe id="engine-viewport" src="" allow="gamepad; autoplay; fullscreen"></iframe>
-
-    <!-- 2. Administrative Status Component -->
-    <div id="storage-status" style="padding: 10px; font-weight: bold; color: orange; font-family: sans-serif; text-align: center;">
+    <!-- 2. ADMINISTRATIVE RETENTION STATUS COMPONENT -->
+    <div id="storage-status" style="padding: 5px; font-weight: bold; color: orange; font-family: sans-serif; text-align: center;">
         Checking Save Protection State...
     </div>
 
-    <!-- 3. Automated Porthub Data Mover UI Card Layout -->
+    <!-- 3. AUTOMATED PORTHUB DATA MOVER UI CARD LAYOUT -->
     <div style="background:#16161a; color:#fff; font-family:sans-serif; padding:20px; border:2px solid #b02a2a; border-radius:10px; max-width:400px; margin:20px auto; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
         <h3 style="color:#b02a2a; margin:0 0 10px 0; font-size:1.3em;">Porthub File Saver</h3>
-        <p style="font-size:0.85em; color:#a0a0a5; margin-bottom:15px;">Transfer your progress smoothly across platform versions</p>
+        <p style="font-size:0.85em; color:#a0a0a5; margin-bottom:15px;">Transfer your progress smoothly between file and web app versions</p>
+        
+        <!-- EXPORT BUTTON -->
         <button style="background:#b02a2a; color:#fff; border:none; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%; margin-bottom:15px;" onclick="exportPorthubSave()">1. Download My Save File</button>
+        
+        <div style="border-top:1px solid #333; margin:10px 0; padding-top:15px;">
+            <!-- IMPORT BUTTONS -->
+            <input type="file" id="porthubImportFile" accept=".pHubSave" style="display:none;" onchange="importPorthubSave(this)">
+            <button style="background:#2f2f37; color:#fff; border:1px solid #444; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%;" onclick="document.getElementById('porthubImportFile').click()">2. Upload & Inject Save File</button>
+        </div>
     </div>
 
-    <!-- MAIN CORE LOGIC BLOCK -->
+    <!-- 4. CORE ENGINE CORE JAVASCRIPT LOGIC -->
     <script>
-        // Frame Orchestration Router
-        function launchGameFrame(targetUrl) {
-            const viewport = document.getElementById('engine-viewport');
-            viewport.src = targetUrl;
-            viewport.style.display = 'block';
-            viewport.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Storage Persistence API Validator
+        // Storage Persistence API Monitoring Setup
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persisted().then((isPersisted) => {
                 const statusDiv = document.getElementById("storage-status");
-                if (isPersisted) {
-                    statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
-                    statusDiv.style.color = "#00ff00";
-                } else {
-                    navigator.storage.persist().then((granted) => {
-                        if (granted) {
-                            statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
-                            statusDiv.style.color = "#00ff00";
-                        } else {
-                            statusDiv.innerText = "⚠️ Saves Vulnerable (Managed Profile Restriction)";
-                            statusDiv.style.color = "#ff3333";
-                        }
-                    });
+                if (statusDiv) {
+                    if (isPersisted) {
+                        statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+                        statusDiv.style.color = "#00ff00";
+                    } else {
+                        navigator.storage.persist().then((granted) => {
+                            if (granted) {
+                                statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+                                statusDiv.style.color = "#00ff00";
+                            } else {
+                                statusDiv.innerText = "⚠️ Saves Vulnerable (Managed Profile Restriction)";
+                                statusDiv.style.color = "#ff3333";
+                            }
+                        });
+                    }
                 }
             });
         }
 
-        // Unified Save Scanner File Tool (With Infinite Download Protection Array Loop Brake)
+        // Unified Multi-Game Save Scanner (with Loop Brake Optimization)
         function exportPorthubSave() {
             var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
             var found = false;
-            var downloadedKeys = []; 
+            var downloadedKeys = []; // Tracks key blocks to prevent infinite duplicate download loops
 
             databases.forEach(function(dbName) {
                 var request = indexedDB.open(dbName);
@@ -86,19 +77,21 @@
                     db.transaction('FILE_DATA','readonly').objectStore('FILE_DATA').openCursor().onsuccess = function(evt) {
                         var cursor = evt.target.result;
                         if (cursor) {
+                            // Check if item meets criteria and hasn't dropped to client downloads yet
                             if ((cursor.key.includes('user') || cursor.key.includes('.dat')) && !downloadedKeys.includes(cursor.key)) {
                                 found = true;
-                                downloadedKeys.push(cursor.key); 
+                                downloadedKeys.push(cursor.key); // Register key out of parsing loops
                                 
                                 var rawData = cursor.value.contents ? cursor.value.contents : cursor.value;
                                 var blob = new Blob([new Uint8Array(rawData)], {type: "application/octet-stream"});
                                 var link = document.createElement('a');
                                 link.href = URL.createObjectURL(blob);
+                                
+                                // Dynamic filename assignment based on native key parameters
                                 link.download = cursor.key.replace('/', '') + ".pHubSave";
                                 link.click();
-                                return; // Breaks loop progression cleanly to safeguard downstream memory stacks
                             }
-                            cursor.continue();
+                            cursor.continue(); // Safe forward tracking for separate game configurations
                         }
                     };
                 };
@@ -106,11 +99,37 @@
             
             setTimeout(function() { 
                 if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
-                else alert("Success! Your unique game saves have been compiled.");
+                else alert("Success! Your unique game saves have been compiled to your Downloads folder.");
             }, 1000);
         }
 
-        // Borderless Screen Event Handlers
+        // Native Save Importer Utility Logic
+        function importPorthubSave(input) {
+            if (!input.files || !input.files[0]) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var bytes = new Uint8Array(e.target.result);
+                var databases = ['/idbfs', 'EmscriptenFS', 'hollow_knight'];
+                var successCount = 0;
+                databases.forEach(function(dbName) {
+                    var request = indexedDB.open(dbName);
+                    request.onsuccess = function(evt) {
+                        var db = evt.target.result;
+                        if (!db.objectStoreNames.contains('FILE_DATA')) return;
+                        var tx = db.transaction('FILE_DATA', 'readwrite');
+                        tx.objectStore('FILE_DATA').put({ contents: bytes, timestamp: Date.now() }, '/user1.dat');
+                        tx.objectStore('FILE_DATA').put({ contents: bytes, timestamp: Date.now() }, 'user1.dat');
+                        successCount++;
+                        if(successCount === 1) {
+                            alert("Save Injected Successfully! Close the app and reopen it to load your progress.");
+                        }
+                    };
+                });
+            };
+            reader.readAsArrayBuffer(input.files[0]);
+        }
+
+        // Fullscreen Context Handlers
         document.addEventListener('keydown', function(event) {
             if (event.key === 'F11' || event.code === 'F11') {
                 if (!document.fullscreenElement) triggerTrueBorderless();
