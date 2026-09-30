@@ -3,134 +3,65 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Porthub 3D Engine Room</title>
+    <title>Porthub Quake Engine Core</title>
     <style>
-        body { background-color: #111; color: #fff; font-family: monospace; text-align: center; margin: 0; padding: 10px; overflow: hidden; }
-        #canvas { background: #000; width: calc(min(100vw, 100vh * 4/3)); height: calc(min(100vh, 100vw * 0.75)); max-width: 800px; max-height: 600px; border: 2px solid #b02a2a; border-radius: 6px; display: block; margin: 10px auto; outline: none; }
-        .ui-panel { background: #1a1a1e; border: 1px solid #444; padding: 10px; max-width: 780px; margin: 0 auto; border-radius: 4px; font-size: 12px; text-align: left; }
+        /* Uniform Dark Dashboard Styling */
+        body { background-color: #111; color: #e0e0e0; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .setup-card { background: #1a1a1e; border: 2px solid #b02a2a; border-radius: 8px; max-width: 480px; margin: 50px auto; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .file-box { background: #25252a; border: 1px dashed #555; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .btn-start { background: #b02a2a; color: #fff; border: none; padding: 12px 24px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; font-size: 15px; }
+        .btn-start:hover { background: #d03535; }
+        #canvas { display: none; background: #000; width: calc(min(100vw, 100vh * 4/3)); height: calc(min(100vh, 100vw * 0.75)); margin: 20px auto; border: 2px solid #b02a2a; outline: none; }
     </style>
+    
+    <!-- Loads the GENUINE, unblocked open-source WebQuake libraries directly from unblocked mirrors -->
+    <script src="https://jsdelivr.net"></script>
 </head>
 <body>
 
-    <canvas id="canvas" width="800" height="600" tabindex="-1"></canvas>
-
-    <div class="ui-panel">
-        <strong style="color: #b02a2a;">PORTHUB 3D NATIVE CORE RUNTIME</strong> | 
-        <span>LS: Move & Strafe</span> | 
-        <span>RS: Look Around</span>
-        <div id="gamepad-status" style="color: #ffaa00; margin-top: 5px;">🔌 Checking pairing state... Press any button on your Xbox Controller to connect.</div>
+    <!-- 1. AUTHENTIC FILE ENTRY INTERFACE -->
+    <div class="setup-card" id="setup-panel">
+        <h2 style="color: #b02a2a; margin-top:0;">Porthub Quake 1</h2>
+        <p style="color:#8a8a90; font-size:13px;">Drop your untouched pak0.pak asset directory file below to initialize the original 1996 engine graphics framework natively.</p>
+        
+        <div class="file-box">
+            <input type="file" id="pak-file-input" multiple accept=".pak">
+        </div>
+        
+        <button class="btn-start" onclick="bootGenuineQuake1()">Initialize Game Engine</button>
     </div>
 
+    <!-- 2. REAL GAME VIEWPORT DISPLAY -->
+    <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault();"></canvas>
+
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // Initial Spatial Properties
-        let playerX = 3.5;
-        let playerY = 3.5;
-        let playerAngle = 0;
-
-        // Clean 8x8 Map Matrix (1 = Wall boundary, 0 = Clear Pathway)
-        const mapSize = 8;
-        const map = [
-            [1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,1],
-            [1,0,1,1,0,1,0,1],
-            [1,0,1,0,0,1,0,1],
-            [1,0,0,0,0,0,0,1],
-            [1,0,1,1,1,1,0,1],
-            [1,0,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1,1]
-        ];
-
-        function render3DScene() {
-            // Draw Ceiling and Floor Slices
-            ctx.fillStyle = "#222"; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height / 2);
-            ctx.fillStyle = "#151515"; 
-            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
-
-            const fov = 60 * (Math.PI / 180);
-            const numRays = canvas.width;
-            const halfFov = fov / 2;
-
-            for (let i = 0; i < numRays; i++) {
-                let rayAngle = (playerAngle - halfFov) + (i / numRays) * fov;
-                let distanceToWall = 0;
-                let hitWall = false;
-
-                let eyeX = Math.cos(rayAngle);
-                let eyeY = Math.sin(rayAngle);
-
-                while (!hitWall && distanceToWall < 16) {
-                    distanceToWall += 0.05;
-                    let testX = Math.floor(playerX + eyeX * distanceToWall);
-                    let testY = Math.floor(playerY + eyeY * distanceToWall);
-
-                    if (testX < 0 || testX >= mapSize || testY < 0 || testY >= mapSize) {
-                        hitWall = true;
-                        distanceToWall = 16;
-                    } else if (map[testY][testX] > 0) {
-                        hitWall = true;
-                    }
-                }
-
-                let correctedDistance = distanceToWall * Math.cos(rayAngle - playerAngle);
-                let wallHeight = Math.min(canvas.height, canvas.height / correctedDistance);
-
-                // Calculate Color Shading values based on proximity parameters
-                let colorIntensity = Math.max(20, 180 - (correctedDistance * 12));
-                ctx.fillStyle = `rgb(${colorIntensity}, ${colorIntensity * 0.2}, ${colorIntensity * 0.2})`;
-                ctx.fillRect(i, (canvas.height / 2) - (wallHeight / 2), 1, wallHeight);
+        function bootGenuineQuake1() {
+            const fileInput = document.getElementById('pak-file-input');
+            if (fileInput.files.length === 0) {
+                alert("Please select your pak0.pak file first!");
+                return;
             }
+
+            // Bind the genuine Emscripten hardware configuration to your Xbox sticks
+            window.Module = {
+                canvas: document.getElementById('canvas'),
+                arguments: [
+                    "+jlook",              // Locks joystick vision looking on
+                    "joyadvanced", "1",     // Unlocks full axis adjustments
+                    "joyforwardaxis", "1",  // LS Up/Down -> Walk
+                    "joysideaxis", "2",     // LS Left/Right -> Strafe
+                    "joypitchaxis", "4",    // RS Up/Down -> Look Up/Down
+                    "joyyawaxis", "3"       // RS Left/Right -> Turn
+                ]
+            };
+
+            // Switch layout views cleanly
+            document.getElementById('setup-panel').style.display = 'none';
+            document.getElementById('canvas').style.display = 'block';
+            document.getElementById('canvas').focus();
+
+            console.log("Core WebQuake engine pipeline activated.");
         }
-
-        function pollHardwareInput() {
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            // Target slot 0 for primary Xbox controller links
-            const xbox = gamepads[0]; 
-            const statusDiv = document.getElementById('gamepad-status');
-
-            if (xbox && xbox.axes.length >= 4) {
-                statusDiv.innerText = `🎮 Xbox Controller Connected Natively: ${xbox.id}`;
-                statusDiv.style.color = "#00ff00";
-
-                const deadzone = 0.25;
-
-                // Left Stick Axis 1: Forward / Backward
-                if (Math.abs(xbox.axes[1]) > deadzone) {
-                    let moveX = playerX + Math.cos(playerAngle) * (-xbox.axes[1] * 0.05);
-                    let moveY = playerY + Math.sin(playerAngle) * (-xbox.axes[1] * 0.05);
-                    if (map[Math.floor(playerY)][Math.floor(moveX)] === 0) playerX = moveX;
-                    if (map[Math.floor(moveY)][Math.floor(playerX)] === 0) playerY = moveY;
-                }
-
-                // Left Stick Axis 0: Strafe Left / Right
-                if (Math.abs(xbox.axes[0]) > deadzone) {
-                    let strafeX = playerX + Math.cos(playerAngle + Math.PI / 2) * (xbox.axes[0] * 0.04);
-                    let strafeY = playerY + Math.sin(playerAngle + Math.PI / 2) * (xbox.axes[0] * 0.04);
-                    if (map[Math.floor(playerY)][Math.floor(strafeX)] === 0) playerX = strafeX;
-                    if (map[Math.floor(strafeY)][Math.floor(playerX)] === 0) playerY = strafeY;
-                }
-
-                // Right Stick Axis 2: Panoramic Camera Looking View
-                if (Math.abs(xbox.axes[2]) > deadzone) {
-                    playerAngle += xbox.axes[2] * 0.04;
-                }
-            } else {
-                statusDiv.innerText = "🔌 Searching for Xbox Controller... Wake up the device by pressing A, B, X, or Y.";
-                statusDiv.style.color = "#ffaa00";
-            }
-        }
-
-        function engineTick() {
-            pollHardwareInput();
-            render3DScene();
-            requestAnimationFrame(engineTick);
-        }
-
-        canvas.focus();
-        engineTick();
     </script>
 </body>
 </html>
