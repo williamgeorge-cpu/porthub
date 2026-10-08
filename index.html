@@ -6,10 +6,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <style>
-        /* 4-Column Symmetrical CSS Grid Architecture Layout Matrix */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Forces exactly 4 side-by-side columns */
+            grid-template-columns: repeat(4, 1fr); 
             gap: 20px;
             max-width: 1200px;
             margin: 30px auto;
@@ -19,12 +18,12 @@
         }
          .game-grid a {
             display: block;
-            width: max-content; /* 💡 Forces the link box to hug the image tightly */
+            width: max-content;
             text-align: center;
         }
         .game-grid img {
             width: 100%;
-            max-width: 280px; /* Aligns all banners into a completely uniform visual card row */
+            max-width: 280px;
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -35,7 +34,6 @@
             box-shadow: 0 6px 15px rgba(176, 42, 42, 0.4);
         }
         
-        /* Mobile fallback: Scales down smoothly on small displays */
         @media (max-width: 900px) {
             .game-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -45,21 +43,15 @@
     </style>
 </head>
 <body>
-
-    <!-- 1. CORE GAMES LINK GRID (PERFECT 4x4 MATRIX) -->
     <div class="game-grid">
         <a href="htmls/Hollow_Knight.html"><img src="thumbnails/hollow_knight_title_screen.jpg" alt="Hollow Knight"></a>
         <a href="htmls/Hollow_Knight_Silksong.html"><img src="thumbnails/hollow_knight_silksong_title_screen.jpg" alt="Silksong"></a>
         <a href="engines/quake 1/index.html"><img src="thumbnails/quake_title_screen.jpg" alt="Quake 1"></a>
         <a href="engines/quake2/index.html"><img src="thumbnails/quake_2_title_screen.jpeg" alt="Quake 2"></a>
     </div>
-
-    <!-- 2. ADMINISTRATIVE RETENTION STATUS COMPONENT -->
     <div id="storage-status" style="padding: 5px; font-weight: bold; color: orange; font-family: sans-serif; text-align: center;">
         Checking Save Protection State...
     </div>
-
-    <!-- 3. AUTOMATED PORTHUB DATA MOVER UI CARD LAYOUT -->
     <div style="background:#16161a; color:#fff; font-family:sans-serif; padding:20px; border:2px solid #b02a2a; border-radius:10px; max-width:400px; margin:20px auto; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
         <h3 style="color:#b02a2a; margin:0 0 10px 0; font-size:1.3em;">Porthub File Saver</h3>
         <p style="font-size:0.85em; color:#a0a0a5; margin-bottom:15px;">Transfer your progress smoothly between file and web app versions</p>
@@ -73,24 +65,21 @@
             <button style="background:#2f2f37; color:#fff; border:1px solid #444; padding:10px 15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%;" onclick="document.getElementById('porthubImportFile').click()">2. Upload & Inject Save File</button>
         </div>
     </div>
-
-    <!-- 4. CORE ENGINE CORE JAVASCRIPT LOGIC -->
     <script>
-        // Storage Persistence API Monitoring Setup
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persisted().then((isPersisted) => {
                 const statusDiv = document.getElementById("storage-status");
                 if (statusDiv) {
                     if (isPersisted) {
-                        statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+                        statusDiv.innerText = "Saves Protected (ChromeOS Wipes Blocked)";
                         statusDiv.style.color = "#00ff00";
                     } else {
                         navigator.storage.persist().then((granted) => {
                             if (granted) {
-                                statusDiv.innerText = "🔒 Saves Protected (ChromeOS Wipes Blocked)";
+                                statusDiv.innerText = "Saves Protected (ChromeOS Wipes Blocked)";
                                 statusDiv.style.color = "#00ff00";
                             } else {
-                                statusDiv.innerText = "⚠️ Saves Vulnerable (Managed Profile Restriction)";
+                                statusDiv.innerText = "Saves Vulnerable (Managed Profile Restriction)";
                                 statusDiv.style.color = "#ff3333";
                             }
                         });
@@ -139,10 +128,8 @@
                 else alert("Success! Your unique game save has been cleanly compiled into 1 file.");
             }, 1000);
         }
-
-        // Native Save Importer Utility Logic (FIXED SYNTAX FOR ZERO TAB CRASH)
         function importPorthubSave(input) {
-            if (!input.files || !input.files[0]) return; // 💡 Fixed syntax: added [0] tracking handle
+            if (!input.files || !input.files[0]) return; 
             var reader = new FileReader();
             reader.onload = function(e) {
                 var bytes = new Uint8Array(e.target.result);
@@ -163,10 +150,8 @@
                     };
                 });
             };
-            reader.readAsArrayBuffer(input.files[0]); // 💡 Fixed syntax: added [0] array target pointer
+            reader.readAsArrayBuffer(input.files[0]);
         }
-
-        // Fullscreen Context Handlers
         document.addEventListener('keydown', function(event) {
             if (event.key === 'F11' || event.code === 'F11') {
                 if (!document.fullscreenElement) triggerTrueBorderless();
