@@ -11,3 +11,5 @@ games were found on the ultimate catalog of web game ports (https://github.com/C
 
 Please keep in mind the quake and quake 2 ports are not fully working so you do need internet to open those but if the app is already open you don't need internet for hollow knight and silksong
 if you already downloaded the stuff for them (its automatic when you first open the pages).
+
+I added Balatro! I have recently gotten into the game and found a port for my friends, but technically its telatro. (telatro.tomcat.sh)
