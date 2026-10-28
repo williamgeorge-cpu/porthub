@@ -8,7 +8,7 @@
     <style>
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); 
+            grid-template-columns: repeat(5, 1fr); 
             gap: 20px;
             max-width: 1200px;
             margin: 30px auto;
@@ -30,7 +30,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .game-grid img:hover {
-            transform: translateY(-4px);
+            transform: scale(1.04);
             box-shadow: 0 6px 15px rgba(176, 42, 42, 0.4);
         }
         
@@ -126,7 +126,7 @@
             
             setTimeout(function() { 
                 if(!found) alert("No save data found yet. Try entering the game, saving somewhere, and trying again."); 
-                else alert("Success! Your unique game save has been cleanly compiled into 1 file.");
+                else alert("Success!");
             }, 1000);
         }
         function importPorthubSave(input) {
